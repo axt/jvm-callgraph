@@ -1,0 +1,26 @@
+description = """rtjar parser"""
+group = "com.axt"
+
+repositories {
+    mavenCentral()
+}
+
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'com.axt.jvmcallgraph.Main'
+
+
+dependencies {
+    compile 'org.ow2.asm:asm-all:5.1'
+}
+
+task runJar(type: JavaExec, dependsOn: [':compileJava', ':processResources']) {
+        main 'com.axt.jvmcallgraph.Main'
+        doFirst {
+                def cp = files(project.compileJava.destinationDir, project.processResources.destinationDir,) + project.configurations.compile
+                classpath cp
+        }
+}
+
