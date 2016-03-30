@@ -98,7 +98,6 @@ public class CallGraph {
 		}
 	
 		this.activeMethods = remainingMethods;
-		System.out.println("#"+activeMethods.size());
 		return activeMethods.size() > 0;
 	}
 }

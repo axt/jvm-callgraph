@@ -22,6 +22,9 @@ public class MethodInfo {
 	public String getDescription() {
 		return description;
 	}
+	public String getClassName() {
+		return className;
+	}
 	
 	public boolean isPublic() {
 		return (access & Opcodes.ACC_PUBLIC) != 0;
