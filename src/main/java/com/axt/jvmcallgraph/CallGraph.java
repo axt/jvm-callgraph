@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.objectweb.asm.ClassReader;
 
@@ -82,8 +83,12 @@ public class CallGraph {
 		
 		for(MethodInfo method: activeMethods) {
 			Collection<MethodInfo> callees = methodCallCollector.getCallees(method);
+			Predicate<MethodInfo> stopCondition = callGraphRequest.getStopCondition();
+			if (stopCondition != null &&  stopCondition.test(method)) {
+				continue;
+			}
+			CallGraphNode methodNode = methodToNodeMap.get(method);
 			for (MethodInfo callee : callees) {
-				CallGraphNode methodNode = methodToNodeMap.get(method);
 				CallGraphNode calleeNode = null;
 				
 				if (!methodToNodeMap.containsKey(callee)) {

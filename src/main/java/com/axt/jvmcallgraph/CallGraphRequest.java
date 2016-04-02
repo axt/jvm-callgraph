@@ -8,15 +8,19 @@ import java.util.stream.Stream;
 
 import org.objectweb.asm.ClassReader;
 
+import com.axt.jvmcallgraph.CallGraphRequest.Builder;
+
 
 public class CallGraphRequest {
 
 	private final List<BytecodeSource> sources;
 	private final List<Predicate<MethodInfo>> targetMethods;
+	private final Predicate<MethodInfo> stopCondition;
 	
 	private CallGraphRequest(Builder builder) {
 		this.sources = new ArrayList<>(builder.sources);
 		this.targetMethods = new ArrayList<>(builder.targetMethods);
+		this.stopCondition = builder.stopCondition;
 	}
 	
 	public List<ClassReader> getClassReaders() throws IOException {
@@ -35,10 +39,14 @@ public class CallGraphRequest {
 		return ret;
 	}
 
+	public Predicate<MethodInfo> getStopCondition() {
+		return stopCondition;
+	}
 	
 	public final static class Builder {
 		private List<BytecodeSource> sources = new ArrayList<>();
 		private final List<Predicate<MethodInfo>> targetMethods = new ArrayList<>();
+		private Predicate<MethodInfo> stopCondition;
 
 		public Builder() {
 		}
@@ -50,6 +58,11 @@ public class CallGraphRequest {
 
 		public Builder addTargetMethod(Predicate<MethodInfo> predicate) {
 			targetMethods.add(predicate);
+			return this;
+		}
+
+		public Builder stopCondition(Predicate<MethodInfo> stopCondition) {
+			this.stopCondition = stopCondition;
 			return this;
 		}
 

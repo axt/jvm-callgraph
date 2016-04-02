@@ -17,4 +17,16 @@ public class CallGraphNode {
 	public void addCallee(CallGraphNode callee) {
 		this.calleeNodes.add(callee);
 	}
+	
+	public void removeCallee(CallGraphNode callee) {
+		this.calleeNodes.remove(callee);
+	}
+
+	@Override
+	public String toString() {
+		return "CallGraphNode [method=" + method + ", calleeNodes="
+				+ calleeNodes + ", parentNode=" + parentNode + "]";
+	}
+
+	
 }
