@@ -16,11 +16,13 @@ public class CallGraphRequest {
 	private final List<BytecodeSource> sources;
 	private final List<Predicate<MethodInfo>> targetMethods;
 	private final Predicate<MethodInfo> stopCondition;
+	private final boolean prune;
 	
 	private CallGraphRequest(Builder builder) {
 		this.sources = new ArrayList<>(builder.sources);
 		this.targetMethods = new ArrayList<>(builder.targetMethods);
 		this.stopCondition = builder.stopCondition;
+		this.prune = builder.prune;
 	}
 	
 	public List<ClassReader> getClassReaders() throws IOException {
@@ -43,10 +45,15 @@ public class CallGraphRequest {
 		return stopCondition;
 	}
 	
+	public boolean getPrune() {
+		return prune;
+	}
+
 	public final static class Builder {
 		private List<BytecodeSource> sources = new ArrayList<>();
 		private final List<Predicate<MethodInfo>> targetMethods = new ArrayList<>();
 		private Predicate<MethodInfo> stopCondition;
+		private boolean prune;
 
 		public Builder() {
 		}
@@ -63,6 +70,11 @@ public class CallGraphRequest {
 
 		public Builder stopCondition(Predicate<MethodInfo> stopCondition) {
 			this.stopCondition = stopCondition;
+			return this;
+		}
+		
+		public Builder prune(boolean prune) {
+			this.prune = prune;
 			return this;
 		}
 

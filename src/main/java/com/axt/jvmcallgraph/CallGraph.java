@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -37,6 +38,7 @@ public class CallGraph {
 			boolean workleft = nextLevel();
 			if(!workleft) break;
 		}
+		pruneGraph();
 		built = true;
 	}
 
@@ -104,5 +106,43 @@ public class CallGraph {
 	
 		this.activeMethods = remainingMethods;
 		return activeMethods.size() > 0;
+	}
+
+	boolean pruneCalleeNodes(CallGraphNode node, Set<CallGraphNode> visited) {
+		if (node.calleeNodes.size() == 0) {
+			if(!(callGraphRequest.getStopCondition() != null & callGraphRequest.getStopCondition().test(node.method)))
+				return false;
+			return true;
+		} else {
+			boolean keepNode = false;
+			Iterator<CallGraphNode> it = node.calleeNodes.iterator();
+			while(it.hasNext()) {
+				Set<CallGraphNode> visitedCurrent = new HashSet<CallGraphNode>(visited);
+				visitedCurrent.add(node);
+				CallGraphNode callee = it.next();
+				if (visitedCurrent.contains(callee)) {
+					it.remove();
+					continue;
+				};
+				boolean keepCallee = pruneCalleeNodes(callee, visitedCurrent);
+				if (keepCallee) {
+					keepNode |= keepCallee;
+				} else {
+					it.remove();
+				}
+			}
+			return keepNode;
+		}
+	}
+	
+	private void pruneGraph() {
+		if (this.callGraphRequest.getPrune()) {
+			Iterator<CallGraphNode> it = rootNodes.iterator();
+			while(it.hasNext()) {
+				if(!pruneCalleeNodes(it.next(), new HashSet<>())) {
+					it.remove();
+				}
+			}
+		}
 	}
 }
