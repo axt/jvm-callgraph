@@ -2,13 +2,13 @@ package com.axt.jvmcallgraph;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import org.objectweb.asm.ClassReader;
 
-import com.axt.jvmcallgraph.CallGraphRequest.Builder;
+import com.google.common.collect.ImmutableList;
 
 
 public class CallGraphRequest {
@@ -60,6 +60,21 @@ public class CallGraphRequest {
 		
 		public Builder addDirectorySource(String directory) {
 			sources.add(new DirectoryBytecodeSource(directory));
+			return this;
+		}
+
+		public Builder addJarSource(String jarfile) {
+			sources.add(new JarBytecodeSource(jarfile));
+			return this;
+		}
+		
+		public Builder addClasspathSource(ClassLoader classLoader, Collection<String> basePackages) {
+			sources.add(new ClasspathBytecodeSource(classLoader, basePackages));
+			return this;
+		}
+		
+		public Builder addClasspathSource(ClassLoader classLoader, String basePackage) {
+			sources.add(new ClasspathBytecodeSource(classLoader, ImmutableList.of(basePackage)));
 			return this;
 		}
 

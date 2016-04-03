@@ -15,6 +15,9 @@ mainClassName = 'com.axt.jvmcallgraph.Main'
 dependencies {
     compile 'com.google.guava:guava:19.0'
     compile 'org.ow2.asm:asm-all:5.1'
+    compile 'org.apache.xbean:xbean-finder:3.12'
+    compile 'com.google.guava:guava:19.0'
+    
 }
 
 task runJar(type: JavaExec, dependsOn: [':compileJava', ':processResources']) {
