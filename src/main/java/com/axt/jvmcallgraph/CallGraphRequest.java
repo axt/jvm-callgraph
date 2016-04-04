@@ -18,6 +18,8 @@ public class CallGraphRequest {
 	private final Predicate<MethodInfo> stopCondition;
 	private final boolean prune;
 	
+	private List<ClassReader> cachedClassReaders = null;
+	
 	private CallGraphRequest(Builder builder) {
 		this.sources = new ArrayList<>(builder.sources);
 		this.targetMethods = new ArrayList<>(builder.targetMethods);
@@ -26,11 +28,14 @@ public class CallGraphRequest {
 	}
 	
 	public List<ClassReader> getClassReaders() throws IOException {
-		List<ClassReader> ret = new ArrayList<>();
-		for(BytecodeSource source : sources) {
-			ret.addAll(source.getClassReaders());
+		if (this.cachedClassReaders == null) {
+			List<ClassReader> cachedClassReaders = new ArrayList<>();
+			for(BytecodeSource source : sources) {
+				cachedClassReaders.addAll(source.getClassReaders());
+			}
+			this.cachedClassReaders = cachedClassReaders;
 		}
-		return ret;
+		return this.cachedClassReaders;
 	}
 
 	public List<Predicate<MethodInfo>> getTargetMethods() throws IOException {
