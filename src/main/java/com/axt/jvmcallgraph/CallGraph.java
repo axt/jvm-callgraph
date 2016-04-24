@@ -38,7 +38,7 @@ public class CallGraph {
 			this.methodToNodeMap.put(node.method, node);
 		}
 		for (int i=0; i < deep; i++) {
-			boolean workleft = nextLevel();
+			boolean workleft = nextLevel(i==0);
 			if(!workleft) break;
 		}
 		pruneGraph();
@@ -81,7 +81,7 @@ public class CallGraph {
 		return rootNodes;
 	}
 	
-	private boolean nextLevel() throws IOException {
+	private boolean nextLevel(boolean top) throws IOException {
 		MethodCallCollector methodCallCollector = new MethodCallCollector(activeMethods);
 		for(ClassReader cr : callGraphRequest.getClassReaders()) {
 			methodCallCollector.setClassName(cr.getClassName());
@@ -93,7 +93,7 @@ public class CallGraph {
 		for(MethodInfo method: activeMethods) {
 			Collection<MethodInfo> callees = methodCallCollector.getCallees(method);
 			Predicate<MethodInfo> stopCondition = callGraphRequest.getStopCondition();
-			if (stopCondition != null &&  stopCondition.test(method)) {
+			if (!top && stopCondition != null &&  stopCondition.test(method)) {
 				continue;
 			}
 			CallGraphNode methodNode = methodToNodeMap.get(method);

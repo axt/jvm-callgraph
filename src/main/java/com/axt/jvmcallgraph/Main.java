@@ -1,43 +1,38 @@
 package com.axt.jvmcallgraph;
 
 import java.io.IOException;
-import java.util.Collection;
 
 class Main {
-	static final String RTPATH = "../../Java/JDK1.8.0_73/rt";
-
+	
 	public static void main(String[] args) throws IOException {
+		explicitTargetMethod();
+		callsToSystemExit();
+	}
 
+	private static void callsToSystemExit() throws IOException {
 		CallGraphRequest callGraphRequest = new CallGraphRequest.Builder()
-			.addDirectorySource(RTPATH)
-			//.addTargetMethod(x -> x.isNative() && x.getClassName().contains("UNIXProcess"))
-			.addTargetMethod(x -> x.getClassName().equals("java/lang/System") && x.getName().equals("exit"))
+				.addJarSource("/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar")
+				.addTargetMethod(x -> x.getClassName().equals("java/lang/System") && x.getName().equals("exit"))
+				.stopCondition(x -> x.getClassName().startsWith("java/"))
+				.prune(true)
+				.build();
+		
+			CallGraph callGraph = new CallGraph(callGraphRequest);
+			callGraph.build(3);
+			System.out.println(callGraph.dump());
+	}
+
+	private static void explicitTargetMethod() throws IOException {
+		CallGraphRequest callGraphRequest = new CallGraphRequest.Builder()
+			.addClasspathSource(Main.class.getClassLoader(), "com.axt")
+			.addExplicitTargetMethod(new MethodInfo("com/axt/jvmcallgraph/ClasspathBytecodeSource", "getClassReaders", null), true, true)
 			.build();
 	
 		CallGraph callGraph = new CallGraph(callGraphRequest);
-		callGraph.build(2);
+		callGraph.build(5);
 		
-		Collection<CallGraphNode> rootNodes = callGraph.getRootNodes();
-		for (CallGraphNode rootNode : rootNodes) {
-			printCallGraph(rootNode);
-		}
-		
-	}
-	
-	//NOTE: probably can loop infinitely
-	private static void printCallGraph(CallGraphNode rootNode) {
-		printNode(rootNode, 0);
+		System.out.println(callGraph.dump());
 	}
 
-	//NOTE: probably can loop infinitely
-	private static void printNode(CallGraphNode node, int level) {
-		for(int i=0; i < level; i++) {
-			System.out.print("\t");
-		}
-		System.out.println(node.method);
-		for (CallGraphNode calleeNode : node.calleeNodes) {
-			printNode(calleeNode, level+1);
-		}
-	}
 
 }
