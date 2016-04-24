@@ -2,6 +2,7 @@ package com.axt.jvmcallgraph;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public class CallGraph {
 	private Set<MethodInfo> activeMethods;
 	private HashMap<MethodInfo, CallGraphNode> methodToNodeMap;
 	
+	private int depth;
 	boolean built = false;
 	
 	public CallGraph(CallGraphRequest callGraphRequest) {
@@ -28,6 +30,7 @@ public class CallGraph {
 	}
 
 	public void build(int deep) throws IOException {
+		this.depth = deep;
 		this.activeMethods = new HashSet<>(collectTargetMethods());
 		this.rootNodes = setRootNodes(this.activeMethods);
 		this.methodToNodeMap = new HashMap<>();
@@ -52,6 +55,10 @@ public class CallGraph {
 		return Collections.unmodifiableList(rootNodes);
 	}
 	
+	public int getDepth() {
+		return depth;
+	}
+	
 	private void checkIsBuilt() {
 		if (!built)
 			throw new IllegalStateException("build() should be called before accessing query functions");
@@ -65,7 +72,7 @@ public class CallGraph {
 		}
 		return targetMethodCollector.getCollectedMethods();
 	}
-
+	
 	private List<CallGraphNode> setRootNodes(Collection<MethodInfo> targetMethods) {
 		List<CallGraphNode> rootNodes = new ArrayList<>();
 		for(MethodInfo method : targetMethods) {
@@ -110,7 +117,7 @@ public class CallGraph {
 
 	boolean pruneCalleeNodes(CallGraphNode node, Set<CallGraphNode> visited) {
 		if (node.calleeNodes.size() == 0) {
-			if(!(callGraphRequest.getStopCondition() != null & callGraphRequest.getStopCondition().test(node.method)))
+			if(!(callGraphRequest.getStopCondition() != null && callGraphRequest.getStopCondition().test(node.method)))
 				return false;
 			return true;
 		} else {
@@ -144,5 +151,39 @@ public class CallGraph {
 				}
 			}
 		}
+	}
+
+	private static void printCallGraph(StringBuilder sb, CallGraphNode node, int maxDepth) {
+		printNode(sb, node, 0, maxDepth);
+	}
+	
+	private static void printNode(StringBuilder sb, CallGraphNode node, int level, int maxDepth) {
+		if (level > maxDepth) {
+			return;
+		}
+		for(int i=0; i < level; i++) {
+			sb.append("\t");
+		}
+		sb.append("(");
+		sb.append(level);
+		sb.append(")");
+		sb.append(node.method);
+		sb.append("\n");
+		for (CallGraphNode calleeNode : node.calleeNodes) {
+			printNode(sb, calleeNode, level+1, maxDepth);
+		}
+	}
+
+	public String dump() {
+		return dump(getDepth());
+	}
+	
+	public String dump(int maxDepth) {
+		StringBuilder sb = new StringBuilder();
+		Collection<CallGraphNode> rootNodes = this.getRootNodes();
+		for (CallGraphNode rootNode : rootNodes) {
+			printCallGraph(sb, rootNode, maxDepth);
+		}
+		return sb.toString();
 	}
 }
