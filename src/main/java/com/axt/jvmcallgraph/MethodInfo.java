@@ -6,16 +6,19 @@ public class MethodInfo {
 	private String name;
 	private String description;
 	private String className;
-	private int access;
-	
-	public MethodInfo(String className, String name, String description, int access) {
+	private Integer access;
+
+	public MethodInfo(String className, String name, String description) {
 		super();
 		this.className = className;
 		this.name = name;
 		this.description = description;
-		this.access = access;
 	}
 
+	public void setAccess(int access) {
+		this.access = access;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -42,14 +45,16 @@ public class MethodInfo {
 	@Override
 	public String toString() {
 		String ret = "";
-		if (isPublic())
-			ret += "public ";
-		if (isProtected())
-			ret += "protected ";
-		if (isPrivate())
-			ret += "private ";
-		if (isNative())
-			ret += "native ";
+		if (access != null) {
+			if (isPublic())
+				ret += "public ";
+			if (isProtected())
+				ret += "protected ";
+			if (isPrivate())
+				ret += "private ";
+			if (isNative())
+				ret += "native ";
+		}
 		
 		ret += className + "::" + name + " " + description;
 		return ret;
@@ -94,7 +99,5 @@ public class MethodInfo {
 		return true;
 	}
 
-	
-	
 
 }

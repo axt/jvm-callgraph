@@ -22,7 +22,8 @@ class MethodCollector extends ClassVisitor {
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		MethodInfo mi = new MethodInfo(className, name, desc, access);
+		MethodInfo mi = new MethodInfo(className, name, desc);
+		mi.setAccess(access);
 		for (Predicate<MethodInfo> predicate : targetMethods) {
 			if (predicate.test(mi)) {
 				collectedMethods.add(mi);

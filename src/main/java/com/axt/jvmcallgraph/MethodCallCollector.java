@@ -27,9 +27,10 @@ class MethodCallCollector extends ClassVisitor {
 		return new MethodVisitor(Opcodes.ASM5) {
 			@Override
 			public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-				MethodInfo mi = new MethodInfo(owner, name, desc, 0);
+				MethodInfo mi = new MethodInfo(owner, name, desc);
 				if (calledMethods.contains(mi)) {
-					MethodInfo outerMethodInfo = new MethodInfo(className, outerName, outerDesc, access);
+					MethodInfo outerMethodInfo = new MethodInfo(className, outerName, outerDesc);
+					outerMethodInfo.setAccess(access);
 					calleeMethods.put(mi, outerMethodInfo);					
 //				    int INVOKEVIRTUAL = 182;
 //				    int INVOKESPECIAL = 183;
