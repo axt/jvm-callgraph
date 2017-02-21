@@ -19,6 +19,10 @@ public class MethodInfo {
 		this.access = access;
 	}
 	
+	public Integer getAccess() {
+		return access;
+	}
+	
 	public String getName() {
 		return name;
 	}

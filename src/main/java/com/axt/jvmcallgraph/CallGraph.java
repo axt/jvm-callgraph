@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
+
+import com.google.common.collect.ImmutableList;
 
 public class CallGraph {
 	
@@ -104,19 +107,43 @@ public class CallGraph {
 					calleeNode = new CallGraphNode(callee);
 					methodToNodeMap.put(callee, calleeNode);
 					remainingMethods.add(callee);
+					
 				} else {
 					calleeNode = methodToNodeMap.get(callee);
 				}
 				methodNode.addCallee(calleeNode);
+
+				if (callGraphRequest.isFollowInterfaces() || callGraphRequest.isFollowSuper()) {
+					Set<Predicate<MethodInfo>> scope = this.callGraphRequest.toPredicates(ImmutableList.of(new CallGraphRequest.ExplicitTargetMethod(callee, callGraphRequest.isFollowSuper(), callGraphRequest.isFollowInterfaces())));
+					
+					MethodCollector targetMethodCollector = new MethodCollector(new ArrayList(scope));
+					for(ClassReader cr : callGraphRequest.getClassReaders()) {
+						targetMethodCollector.setClassName(cr.getClassName());
+						cr.accept(targetMethodCollector, 0);
+					}
+					
+					for(MethodInfo callee2 : targetMethodCollector.getCollectedMethods()) {
+						if (callee2 == callee)
+							continue;
+						if (!methodToNodeMap.containsKey(callee2)) {
+							calleeNode = new CallGraphNode(callee2);
+							methodToNodeMap.put(callee2, calleeNode);
+							remainingMethods.add(callee2);						
+						} else {
+							calleeNode = methodToNodeMap.get(callee2);
+						}
+						methodNode.addCallee(calleeNode);
+					}
+				}
 			}
 		}
 	
 		this.activeMethods = remainingMethods;
 		return activeMethods.size() > 0;
 	}
-
-	boolean pruneCalleeNodes(CallGraphNode node, Set<CallGraphNode> visited) {
-		if (node.calleeNodes.size() == 0) {
+	
+	boolean pruneCalleeNodes(CallGraphNode node, Set<CallGraphNode> visited, int level) {
+		if (node.calleeNodes.size() == 0 || level == depth+1) {
 			if(!(callGraphRequest.getStopCondition() != null && callGraphRequest.getStopCondition().test(node.method)))
 				return false;
 			return true;
@@ -131,7 +158,7 @@ public class CallGraph {
 					it.remove();
 					continue;
 				};
-				boolean keepCallee = pruneCalleeNodes(callee, visitedCurrent);
+				boolean keepCallee = pruneCalleeNodes(callee, visitedCurrent, level+1);
 				if (keepCallee) {
 					keepNode |= keepCallee;
 				} else {
@@ -146,7 +173,7 @@ public class CallGraph {
 		if (this.callGraphRequest.getPrune()) {
 			Iterator<CallGraphNode> it = rootNodes.iterator();
 			while(it.hasNext()) {
-				if(!pruneCalleeNodes(it.next(), new HashSet<>())) {
+				if(!pruneCalleeNodes(it.next(), new HashSet<>(), 0)) {
 					it.remove();
 				}
 			}
@@ -170,6 +197,7 @@ public class CallGraph {
 		sb.append(node.method);
 		sb.append("\n");
 		for (CallGraphNode calleeNode : node.calleeNodes) {
+			//if (!calleeNode.getVirtual() || calleeNode.size() > 0)
 			printNode(sb, calleeNode, level+1, maxDepth);
 		}
 	}

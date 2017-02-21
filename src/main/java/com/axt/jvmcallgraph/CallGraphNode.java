@@ -21,7 +21,11 @@ public class CallGraphNode {
 	public void removeCallee(CallGraphNode callee) {
 		this.calleeNodes.remove(callee);
 	}
-
+	
+	public int size() {
+		return calleeNodes.size();
+	}
+	
 	@Override
 	public String toString() {
 		return "CallGraphNode [method=" + method + ", calleeNodes="

@@ -20,6 +20,8 @@ public class CallGraphRequest {
 	
 	private List<ClassReader> cachedClassReaders = null;
 	private ClassHierarchy classHierarchy = null;
+	private final boolean followInterfaces;
+	private final boolean followSuper;
 
 	
 	private CallGraphRequest(Builder builder) {
@@ -30,9 +32,11 @@ public class CallGraphRequest {
 		this.targetMethods = new ArrayList<>(targetMethods);
 		this.stopCondition = builder.stopCondition;
 		this.prune = builder.prune;
+		this.followInterfaces = builder.followInterfaces;
+		this.followSuper = builder.followSuper;
 	}
 
-	private Set<Predicate<MethodInfo>> toPredicates(List<ExplicitTargetMethod> explicitTargetMethods) {
+	public Set<Predicate<MethodInfo>> toPredicates(List<ExplicitTargetMethod> explicitTargetMethods) {
 		Set<Predicate<MethodInfo>> predicates = new HashSet<>();
 		for (ExplicitTargetMethod etm : explicitTargetMethods) {
 			List<String> classNames = new ArrayList<>();
@@ -75,7 +79,7 @@ public class CallGraphRequest {
 		};
 	}
 
-	private ClassHierarchy getClassHierarchy() {
+	public ClassHierarchy getClassHierarchy() {
 		if (this.classHierarchy == null) {
 			ClassHierarchy classHierarchy = new ClassHierarchy();
 			classHierarchy.build(getClassReaders());
@@ -115,7 +119,17 @@ public class CallGraphRequest {
 		return prune;
 	}
 
-	final static class ExplicitTargetMethod {
+	public boolean isFollowInterfaces() {
+		return followInterfaces;
+	}
+
+	public boolean isFollowSuper() {
+		return followSuper;
+	}
+
+
+
+	public final static class ExplicitTargetMethod {
 		MethodInfo methodInfo;
 		boolean withSuper;
 		boolean withInterfaces;
@@ -133,6 +147,8 @@ public class CallGraphRequest {
 		private final List<ExplicitTargetMethod> explicitTargetMethods = new ArrayList<>();
 		private Predicate<MethodInfo> stopCondition;
 		private boolean prune;
+		private boolean followSuper;
+		private boolean followInterfaces;
 
 		public Builder() {
 		}
@@ -178,6 +194,16 @@ public class CallGraphRequest {
 		
 		public Builder prune(boolean prune) {
 			this.prune = prune;
+			return this;
+		}
+
+		public Builder followInterfaces(boolean followInterfaces) {
+			this.followInterfaces = followInterfaces;
+			return this;
+		}
+
+		public Builder followSuper(boolean followSuper) {
+			this.followSuper = followSuper;
 			return this;
 		}
 
